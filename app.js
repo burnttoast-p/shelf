@@ -460,52 +460,6 @@ function setupRendition() {
         src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
         font-weight: normal;
         font-display: swap;
-function setupRendition() {
-  const flow = settings.flow === 'scroll' ? 'scrolled-doc' : 'paginated';
-  rendition = book.renderTo(viewerEl, { width: '100%', height: '100%', flow, spread: 'none', allowScriptedContent: false });
-  
-  const T = rendition.themes;
-  T.register('light', { body: { background: '#faf6ee', color: '#2b2433' } });
-  T.register('dark', { body: { background: '#16131c', color: '#d8d2e4' }, a: { color: '#a58bff' } });
-  T.register('sepia', { body: { background: '#f3e8d2', color: '#463a26' } });
-  T.select(settings.theme);
-
-  if (settings.hlVisible) annos.filter(a => a.type === 'hl').forEach(drawAnno);
-  rendition.on('relocated', onRelocated);
-  rendition.on('selected', onSelected);
-  rendition.on('touchstart', onTouchStart);
-  rendition.on('touchend', onTouchEnd);
-
-  // 책 내용이 아이프레임 내부에 로드될 때 스타일 및 마크다운 강제 가공
-  rendition.hooks.content.register(contents => {
-    const doc = contents.document;
-    const head = doc.head;
-
-    // 1. KoPub 바탕 외부 스타일시트 링크 강제 삽입
-    if (!doc.getElementById('dns-kopub-link')) {
-      const lnk = doc.createElement('link');
-      lnk.id = 'dns-kopub-link';
-      lnk.rel = 'stylesheet';
-      lnk.href = 'https://cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css';
-      head.appendChild(lnk);
-    }
-
-    // 2. 고유 스타일 요소 생성 및 사용자 커스텀 설정 실시간 강제 주입
-    let customStyle = doc.getElementById('dns-custom-inject');
-    if (!customStyle) {
-      customStyle = doc.createElement('style');
-      customStyle.id = 'dns-custom-inject';
-      head.appendChild(customStyle);
-    }
-
-    const fontTarget = settings.fontFamily === 'ridi' ? "'Ridibatang'" : "'KoPub Batang'";
-    
-    customStyle.innerHTML = `
-      @font-face {
-        font-family: 'Ridibatang';
-        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
-        font-weight: normal;
-        font-display: swap;
       }
       body, p, span, div, li, a {
         font-family: ${fontTarget}, serif !important;
@@ -1199,5 +1153,7 @@ function bindStatic() {
   history.replaceState({ lv: 0 }, '');
   bindStatic();
   renderLibrary();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+  
+  // 캐시 지옥 해방용 개발 세팅 (테스트 완료 후 완전히 완성되면 앞에 //를 지워주세요!)
+  // if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
