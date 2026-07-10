@@ -15,7 +15,7 @@ const safeName = t => String(t || '').replace(/[\\/:*?"<>|\n]/g, ' ').trim().sli
 const scrLibrary = $('#scr-library'), scrReader = $('#scr-reader');
 const libList = $('#lib-list'), libSub = $('#lib-sub');
 const fileEpub = $('#file-epub'), fileJson = $('#file-json');
-const viewerEl = $('#viewer'), chipHidden = $('#chip-hidden');
+const viewerEl = $('#viewer'), chipHidden = $('#chip-hidden') || {};
 const rdTop = $('#rd-top'), rdBottom = $('#rd-bottom'), rdTitle = $('#rd-title');
 const rdChapter = $('#rd-chapter'), rdPage = $('#rd-page'), sliderEl = $('#rd-slider');
 const btnBookmark = $('#btn-bookmark');
