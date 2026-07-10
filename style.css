@@ -108,7 +108,7 @@ input, textarea { font: inherit; }
   display: flex; align-items: center; gap: 8px;
   background: var(--accent); color: var(--accent-ink);
   font-weight: 700; font-size: 15px;
-  border-radius: 18px; box-shadow: 0 10px 24px rgba(242, 193, 78, 0.35);
+  border-radius: 18px; box-shadow: none;
 }
 .fab:active { transform: scale(0.97); }
 .fab svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.4; fill: none; stroke-linecap: round; }

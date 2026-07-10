@@ -1,4 +1,4 @@
-const CACHE_NAME = 'log-seojae-v2';
+const CACHE_NAME = 'log-seojae-v3';
 const ASSETS = [
   './',
   './index.html',
