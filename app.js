@@ -417,26 +417,11 @@ function closeReaderVisual() {
 function setupRendition() {
   const flow = settings.flow === 'scroll' ? 'scrolled-doc' : 'paginated';
   rendition = book.renderTo(viewerEl, { width: '100%', height: '100%', flow, spread: 'none', allowScriptedContent: false });
+  
   const T = rendition.themes;
-
-  // 글꼴 스타일 매핑 (부모창의 폰트를 아이프레임 내부에 강제 전달)
-  const font = settings.fontFamily === 'serif' 
-    ? '"Gowun Batang", "Noto Serif KR", serif' 
-    : '-apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif';
-
-  // 공통 적용할 텍스트 스타일 묶음
-  const textStyles = {
-    'font-family': font,
-    'line-height': settings.lineHeight,
-    'letter-spacing': settings.letterSpacing,
-    'padding': `0 ${settings.padding}`,
-    'word-break': 'break-all'
-  };
-
-  T.register('light', { body: { background: '#faf6ee', color: '#2b2433', ...textStyles } });
-  T.register('dark', { body: { background: '#16131c', color: '#d8d2e4', ...textStyles }, a: { color: '#a58bff' } });
-  T.register('sepia', { body: { background: '#f3e8d2', color: '#463a26', ...textStyles } });
-  T.fontSize(settings.fontSize + '%');
+  T.register('light', { body: { background: '#faf6ee', color: '#2b2433' } });
+  T.register('dark', { body: { background: '#16131c', color: '#d8d2e4' }, a: { color: '#a58bff' } });
+  T.register('sepia', { body: { background: '#f3e8d2', color: '#463a26' } });
   T.select(settings.theme);
 
   if (settings.hlVisible) annos.filter(a => a.type === 'hl').forEach(drawAnno);
@@ -445,19 +430,66 @@ function setupRendition() {
   rendition.on('touchstart', onTouchStart);
   rendition.on('touchend', onTouchEnd);
 
-  // 책 내용을 화면에 부를 때 마크다운 형식을 가공하는 훅(Hook)
+  // 책 내용이 아이프레임 내부에 로드될 때 스타일 및 마크다운 강제 가공
   rendition.hooks.content.register(contents => {
-    if (settings.markdown) {
+    const doc = contents.document;
+    const head = doc.head;
+
+    // 1. KoPub 바탕 외부 스타일시트 링크 강제 삽입
+    if (!doc.getElementById('dns-kopub-link')) {
+      const lnk = doc.createElement('link');
+      lnk.id = 'dns-kopub-link';
+      lnk.rel = 'stylesheet';
+      lnk.href = 'https://cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css';
+      head.appendChild(lnk);
+    }
+
+    // 2. 고유 스타일 요소 생성 및 사용자 커스텀 설정 실시간 강제 주입
+    let customStyle = doc.getElementById('dns-custom-inject');
+    if (!customStyle) {
+      customStyle = doc.createElement('style');
+      customStyle.id = 'dns-custom-inject';
+      head.appendChild(customStyle);
+    }
+
+    const fontTarget = settings.fontFamily === 'ridi' ? "'Ridibatang'" : "'KoPub Batang'";
+    
+    customStyle.innerHTML = `
+      @font-face {
+        font-family: 'Ridibatang';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
+        font-weight: normal;
+        font-display: swap;
+      }
+      body, p, span, div, li, a {
+        font-family: ${fontTarget}, serif !important;
+        font-size: ${settings.fontSize}% !important;
+        line-height: ${settings.lineHeight} !important;
+        letter-spacing: ${settings.letterSpacing} !important;
+      }
+      body {
+        padding-left: ${settings.padding} !important;
+        padding-right: ${settings.padding} !important;
+      }
+    `;
+
+    // 3. 마크다운 변환 파싱 (중복 변환으로 인한 형광펜 깨짐 방지 장치 포함)
+    if (settings.markdown && !doc.body.classList.contains('md-done')) {
       try {
-        let html = contents.document.body.innerHTML;
-        // 1. 굵은 글씨 반영 (**텍스트** 또는 __텍스트__)
+        let html = doc.body.innerHTML;
+        
+        // # 제목 변환 (# 한 칸 띄우기 기준)
+        html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*#\s+(.*?)(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, '$1<h1 style="font-size: 1.4em; color: var(--accent); margin: 16px 0; font-weight: 700; line-height: 1.3 !important;">$2</h1>');
+        // ** 볼드체 변환
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
         html = html.replace(/__(.*?)__/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
-        // 2. 기울임 반영 (*텍스트* 또는 _텍스트_)
+        // * 이탤릭체 변환
         html = html.replace(/\*(.*?)\*/g, '<em style="font-style:italic; opacity:0.85;">$1</em>');
-        // 3. 챗 로그 인용구 스타일 반영 (> 대사)
-        html = html.replace(/(^|&lt;br&gt;|&lt;p&gt;)\s*&gt;\s*(.*?)(?=&lt;br&gt;|&lt;\/p&gt;|$)/g, '$1<blockquote style="border-left:3px solid #8b6ff0; padding-left:10px; margin:6px 0; color:rgba(255,255,255,0.5); font-style:normal;">$2</blockquote>');
-        contents.document.body.innerHTML = html;
+        // > 인용구 변환
+        html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*&gt;\s*(.*?)(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, '$1<blockquote style="border-left:3px solid #8b6ff0; padding-left:10px; margin:8px 0; color:rgba(128,128,128,0.7); font-style:normal;">$2</blockquote>');
+        
+        doc.body.innerHTML = html;
+        doc.body.classList.add('md-done');
       } catch (e) { console.error(e); }
     }
 
