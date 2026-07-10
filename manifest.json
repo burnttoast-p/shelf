@@ -1,0 +1,16 @@
+{
+  "name": "절대 바이러스 아닙니다. 믿어주세요... 전 돌고래입니다",
+  "short_name": "전 돌고래입니다",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#171320",
+  "theme_color": "#171320",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

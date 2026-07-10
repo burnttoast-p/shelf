@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>고래는 웨일 돌고래는 스톤웨일</title>
+<meta name="theme-color" content="#171320">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ 서재 ============ -->
+<div class="screen" id="scr-library">
+  <div class="lib-head">
+    <div class="lib-title">고래는 웨일 돌고래는 스톤웨일<span class="swipe"></span></div>
+    <div class="lib-actions">
+      <button class="ibtn" id="btn-backup" title="기록 백업(JSON)">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </button>
+      <button class="ibtn" id="btn-restore" title="기록 가져오기(JSON)">
+        <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="lib-sub" id="lib-sub">EPUB을 넣어두고, 밑줄 긋고, 다시 꺼내 읽는 곳</div>
+  <div id="lib-list"></div>
+  <button class="fab" id="btn-add-epub">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>EPUB 추가
+  </button>
+</div>
+
+<!-- ============ 뷰어 ============ -->
+<div class="screen" id="scr-reader" hidden>
+  <div id="viewer"></div>
+
+  <div class="chip-hidden" id="chip-hidden" hidden>형광펜 숨김 중</div>
+
+  <div class="rd-bar rd-top hide" id="rd-top">
+    <button class="ibtn" id="btn-back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div id="rd-title"></div>
+    <button class="ibtn" id="btn-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+    <button class="ibtn" id="btn-toc"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="0.8"/><circle cx="4" cy="12" r="0.8"/><circle cx="4" cy="18" r="0.8"/></svg></button>
+    <button class="ibtn" id="btn-bookmark"><svg viewBox="0 0 24 24"><path d="M7 4h10a1 1 0 0 1 1 1v16l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg></button>
+    <button class="ibtn" id="btn-menu"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="12" cy="19" r="1.1"/></svg></button>
+  </div>
+
+  <div class="rd-bar rd-bottom hide" id="rd-bottom">
+    <div class="rd-loc">
+      <span id="rd-chapter"></span>
+      <span id="rd-page"></span>
+    </div>
+    <input type="range" id="rd-slider" min="0" max="1000" value="0" disabled>
+  </div>
+
+  <div id="selbar" hidden>
+    <button class="pen" data-style="red" style="background:var(--hl-red)"></button>
+    <button class="pen" data-style="orange" style="background:var(--hl-orange)"></button>
+    <button class="pen" data-style="yellow" style="background:var(--hl-yellow)"></button>
+    <button class="pen" data-style="green" style="background:var(--hl-green)"></button>
+    <button class="pen" data-style="blue" style="background:var(--hl-blue)"></button>
+    <button class="pen" data-style="purple" style="background:var(--hl-purple)"></button>
+    <button class="pen-under" data-style="under">밑줄</button>
+    <button class="sel-x" id="sel-close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</div>
+
+<!-- ============ 목차 패널 ============ -->
+<div class="panel" id="pn-toc" hidden>
+  <div class="panel-head">
+    <button class="ibtn pn-close"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="panel-title">목차</div>
+  </div>
+  <div class="panel-body" id="toc-list"></div>
+</div>
+
+<!-- ============ 검색 패널 ============ -->
+<div class="panel" id="pn-search" hidden>
+  <div class="panel-head">
+    <button class="ibtn pn-close"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="panel-title">단어 검색</div>
+  </div>
+  <div class="search-box">
+    <input id="search-input" type="search" placeholder="찾을 단어나 문장" enterkeyhint="search">
+    <button class="search-go" id="search-go">검색</button>
+  </div>
+  <div id="search-status"></div>
+  <div class="panel-body" id="search-list"></div>
+</div>
+
+<!-- ============ 모아보기 패널 ============ -->
+<div class="panel" id="pn-collect" hidden>
+  <div class="panel-head">
+    <button class="ibtn pn-close"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="panel-title">모아보기</div>
+    <button class="ibtn" id="btn-export-book" title="이 책 기록 내보내기">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    </button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="tab-hl">형광펜 · 메모</button>
+    <button class="tab" id="tab-bm">북마크</button>
+  </div>
+  <div class="chips" id="collect-chips"></div>
+  <div class="panel-body" id="collect-list"></div>
+</div>
+
+<!-- ============ 시트 컨테이너 (내용은 JS가 채움) ============ -->
+<div id="sheet-root"></div>
+
+<input type="file" id="file-epub" accept=".epub,application/epub+zip" hidden>
+<input type="file" id="file-json" accept=".json,application/json" hidden>
+
+<div id="toast-wrap"></div>
+
+<div id="loading" hidden>
+  <div class="spin"></div>
+  <div id="loading-msg">여는 중…</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.93/dist/epub.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
