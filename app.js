@@ -418,17 +418,49 @@ function setupRendition() {
   const flow = settings.flow === 'scroll' ? 'scrolled-doc' : 'paginated';
   rendition = book.renderTo(viewerEl, { width: '100%', height: '100%', flow, spread: 'none', allowScriptedContent: false });
   const T = rendition.themes;
-  T.register('light', { body: { background: '#faf6ee', color: '#2b2433', 'line-height': '1.7' } });
-  T.register('dark', { body: { background: '#16131c', color: '#d8d2e4', 'line-height': '1.7' }, a: { color: '#a58bff' } });
-  T.register('sepia', { body: { background: '#f3e8d2', color: '#463a26', 'line-height': '1.7' } });
+
+  // 글꼴 스타일 매핑 (부모창의 폰트를 아이프레임 내부에 강제 전달)
+  const font = settings.fontFamily === 'serif' 
+    ? '"Gowun Batang", "Noto Serif KR", serif' 
+    : '-apple-system, "Noto Sans KR", "Malgun Gothic", sans-serif';
+
+  // 공통 적용할 텍스트 스타일 묶음
+  const textStyles = {
+    'font-family': font,
+    'line-height': settings.lineHeight,
+    'letter-spacing': settings.letterSpacing,
+    'padding': `0 ${settings.padding}`,
+    'word-break': 'break-all'
+  };
+
+  T.register('light', { body: { background: '#faf6ee', color: '#2b2433', ...textStyles } });
+  T.register('dark', { body: { background: '#16131c', color: '#d8d2e4', ...textStyles }, a: { color: '#a58bff' } });
+  T.register('sepia', { body: { background: '#f3e8d2', color: '#463a26', ...textStyles } });
   T.fontSize(settings.fontSize + '%');
   T.select(settings.theme);
+
   if (settings.hlVisible) annos.filter(a => a.type === 'hl').forEach(drawAnno);
   rendition.on('relocated', onRelocated);
   rendition.on('selected', onSelected);
   rendition.on('touchstart', onTouchStart);
   rendition.on('touchend', onTouchEnd);
+
+  // 책 내용을 화면에 부를 때 마크다운 형식을 가공하는 훅(Hook)
   rendition.hooks.content.register(contents => {
+    if (settings.markdown) {
+      try {
+        let html = contents.document.body.innerHTML;
+        // 1. 굵은 글씨 반영 (**텍스트** 또는 __텍스트__)
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
+        html = html.replace(/__(.*?)__/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
+        // 2. 기울임 반영 (*텍스트* 또는 _텍스트_)
+        html = html.replace(/\*(.*?)\*/g, '<em style="font-style:italic; opacity:0.85;">$1</em>');
+        // 3. 챗 로그 인용구 스타일 반영 (> 대사)
+        html = html.replace(/(^|&lt;br&gt;|&lt;p&gt;)\s*&gt;\s*(.*?)(?=&lt;br&gt;|&lt;\/p&gt;|$)/g, '$1<blockquote style="border-left:3px solid #8b6ff0; padding-left:10px; margin:6px 0; color:rgba(255,255,255,0.5); font-style:normal;">$2</blockquote>');
+        contents.document.body.innerHTML = html;
+      } catch (e) { console.error(e); }
+    }
+
     try {
       contents.document.addEventListener('selectionchange', () => {
         const s = contents.window.getSelection();
