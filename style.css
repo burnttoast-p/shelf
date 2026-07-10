@@ -72,11 +72,7 @@ input, textarea { font: inherit; }
 }
 .lib-title { position: relative; font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: 0.02em; }
 .lib-title .swipe {
-  position: absolute; left: -8px; right: -12px; bottom: 1px; height: 13px;
-  background: var(--accent); opacity: 0.32;
-  border-radius: 7px 10px 8px 9px;
-  transform: skewX(-14deg) rotate(-1.2deg);
-  z-index: -1;
+  display: none;
 }
 .lib-actions { display: flex; gap: 2px; }
 
