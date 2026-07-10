@@ -949,34 +949,75 @@ function openSettingsSheet(replace) {
     <div class="set-row"><span class="set-label">글자 크기</span>
       <div class="stepper"><button data-fs="-5">−</button><span class="val" id="fs-val"></span><button data-fs="5">＋</button></div>
     </div>
-    <div class="set-row"><span class="set-label">화면</span>
+    <div class="set-row"><span class="set-label">글꼴 형태</span>
+      <div class="seg" id="seg-font"><button data-fn="serif">바탕체</button><button data-fn="sans">고딕체</button></div>
+    </div>
+    <div class="set-row"><span class="set-label">문단 여백 (폭)</span>
+      <div class="seg" id="seg-pad"><button data-pd="14px">넓게</button><button data-pd="28px">보통</button><button data-pd="42px">좁게</button></div>
+    </div>
+    <div class="set-row"><span class="set-label">줄 간격 (행간)</span>
+      <div class="seg" id="seg-lh"><button data-lh="1.5">좁게</button><button data-lh="1.8">보통</button><button data-lh="2.2">넓게</button></div>
+    </div>
+    <div class="set-row"><span class="set-label">글자 간격 (자간)</span>
+      <div class="seg" id="seg-ls"><button data-ls="-0.5px">좁게</button><button data-ls="0px">보통</button><button data-ls="1px">넓게</button></div>
+    </div>
+    <div class="set-row"><span class="set-label">마크다운 서식</span>
+      <div class="seg" id="seg-md"><button data-md="true">적용</button><button data-md="false">해제</button></div>
+    </div>
+    <div class="set-row"><span class="set-label">화면 테마</span>
       <div class="seg" id="seg-theme"><button data-t="light">밝게</button><button data-t="sepia">세피아</button><button data-t="dark">어둡게</button></div>
     </div>
-    <div class="set-row"><span class="set-label">넘김</span>
+    <div class="set-row"><span class="set-label">페이지 넘김</span>
       <div class="seg" id="seg-flow"><button data-f="page">페이지</button><button data-f="scroll">스크롤</button></div>
     </div>`, { replace });
+
   const sync = () => {
     el.querySelector('#fs-val').textContent = settings.fontSize + '%';
+    el.querySelectorAll('#seg-font button').forEach(b => b.classList.toggle('on', b.dataset.fn === settings.fontFamily));
+    el.querySelectorAll('#seg-pad button').forEach(b => b.classList.toggle('on', b.dataset.pd === settings.padding));
+    el.querySelectorAll('#seg-lh button').forEach(b => b.classList.toggle('on', b.dataset.lh === settings.lineHeight));
+    el.querySelectorAll('#seg-ls button').forEach(b => b.classList.toggle('on', b.dataset.ls === settings.letterSpacing));
+    el.querySelectorAll('#seg-md button').forEach(b => b.classList.toggle('on', b.dataset.md === String(settings.markdown)));
     el.querySelectorAll('#seg-theme button').forEach(b => b.classList.toggle('on', b.dataset.t === settings.theme));
     el.querySelectorAll('#seg-flow button').forEach(b => b.classList.toggle('on', b.dataset.f === settings.flow));
   };
   sync();
+
   el.onclick = e => {
     const fs = e.target.closest('[data-fs]');
+    const fn = e.target.closest('[data-fn]');
+    const pd = e.target.closest('[data-pd]');
+    const lh = e.target.closest('[data-lh]');
+    const ls = e.target.closest('[data-ls]');
+    const md = e.target.closest('[data-md]');
     const th = e.target.closest('[data-t]');
     const fl = e.target.closest('[data-f]');
+
     if (fs) {
       settings.fontSize = Math.min(180, Math.max(80, settings.fontSize + Number(fs.dataset.fs)));
       saveSettings();
       if (rendition) rendition.themes.fontSize(settings.fontSize + '%');
+    } else if (fn) {
+      settings.fontFamily = fn.dataset.fn;
+      saveSettings(); recreateRendition();
+    } else if (pd) {
+      settings.padding = pd.dataset.pd;
+      saveSettings(); recreateRendition();
+    } else if (lh) {
+      settings.lineHeight = lh.dataset.lh;
+      saveSettings(); recreateRendition();
+    } else if (ls) {
+      settings.letterSpacing = ls.dataset.ls;
+      saveSettings(); recreateRendition();
+    } else if (md) {
+      settings.markdown = md.dataset.md === 'true';
+      saveSettings(); recreateRendition();
     } else if (th && th.dataset.t !== settings.theme) {
       settings.theme = th.dataset.t;
-      saveSettings();
-      applyReaderTheme();
+      saveSettings(); applyReaderTheme();
     } else if (fl && fl.dataset.f !== settings.flow) {
       settings.flow = fl.dataset.f;
-      saveSettings();
-      recreateRendition();
+      saveSettings(); recreateRendition();
     } else return;
     sync();
   };
