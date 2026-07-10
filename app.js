@@ -981,14 +981,14 @@ function openSettingsSheet(replace) {
     <div class="set-row"><span class="set-label">글자 크기</span>
       <div class="stepper"><button data-fs="-5">−</button><span class="val" id="fs-val"></span><button data-fs="5">＋</button></div>
     </div>
-    <div class="set-row"><span class="set-label">글꼴 형태</span>
-      <div class="seg" id="seg-font"><button data-fn="serif">바탕체</button><button data-fn="sans">고딕체</button></div>
+    <div class="set-row"><span class="set-label">글꼴 변경</span>
+      <div class="seg" id="seg-font"><button data-fn="ridi">리디바탕</button><button data-fn="kopub">KoPub바탕</button></div>
     </div>
-    <div class="set-row"><span class="set-label">문단 여백 (폭)</span>
-      <div class="seg" id="seg-pad"><button data-pd="14px">넓게</button><button data-pd="28px">보통</button><button data-pd="42px">좁게</button></div>
+    <div class="set-row"><span class="set-label">문단 폭 여백</span>
+      <div class="seg" id="seg-pad"><button data-pd="16px">넓게</button><button data-pd="32px">보통</button><button data-pd="48px">좁게</button></div>
     </div>
     <div class="set-row"><span class="set-label">줄 간격 (행간)</span>
-      <div class="seg" id="seg-lh"><button data-lh="1.5">좁게</button><button data-lh="1.8">보통</button><button data-lh="2.2">넓게</button></div>
+      <div class="seg" id="seg-lh"><button data-lh="1.5">좁게</button><button data-lh="1.9">보통</button><button data-lh="2.4">넓게</button></div>
     </div>
     <div class="set-row"><span class="set-label">글자 간격 (자간)</span>
       <div class="seg" id="seg-ls"><button data-ls="-0.5px">좁게</button><button data-ls="0px">보통</button><button data-ls="1px">넓게</button></div>
@@ -1027,8 +1027,7 @@ function openSettingsSheet(replace) {
 
     if (fs) {
       settings.fontSize = Math.min(180, Math.max(80, settings.fontSize + Number(fs.dataset.fs)));
-      saveSettings();
-      if (rendition) rendition.themes.fontSize(settings.fontSize + '%');
+      saveSettings(); recreateRendition();
     } else if (fn) {
       settings.fontFamily = fn.dataset.fn;
       saveSettings(); recreateRendition();
