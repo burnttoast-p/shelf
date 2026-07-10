@@ -1,11 +1,11 @@
-const CACHE_NAME = 'log-seojae-v1';
+const CACHE_NAME = 'log-seojae-v2';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './manifest.json',
-  './icon-192.png'
+  './icon-512.png'
 ];
 
 self.addEventListener('install', e => {
