@@ -1170,3 +1170,4 @@ function bindStatic() {
   // 캐시 지옥 해방용 개발 세팅 (테스트 완료 후 완전히 완성되면 앞에 //를 지워주세요!)
   // if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
+
