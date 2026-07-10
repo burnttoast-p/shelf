@@ -46,11 +46,11 @@ const DEFAULT_SET = {
   theme: 'light', 
   flow: 'page', 
   hlVisible: true,
-  fontFamily: 'serif',   // 기본 글꼴 (바탕체)
-  lineHeight: '1.8',     // 기본 행간
-  letterSpacing: '0px',  // 기본 자간
-  padding: '24px',       // 기본 문단 폭 여백
-  markdown: true         // 마크다운 해석 켜기/끄기
+  fontFamily: 'ridi',    // 기본 폰트를 리디바탕으로 지정
+  lineHeight: '1.8',     
+  letterSpacing: '0px',  
+  padding: '24px',       
+  markdown: true         
 };
 let settings = { ...DEFAULT_SET };
 try { settings = { ...DEFAULT_SET, ...(JSON.parse(localStorage.getItem('lsj-settings') || '{}')) }; } catch (e) { /* 무시 */ }
