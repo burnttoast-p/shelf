@@ -478,13 +478,17 @@ function setupRendition() {
       try {
         let html = doc.body.innerHTML;
         
-        // # 제목 변환 (# 한 칸 띄우기 기준)
-        html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*#\s+(.*?)(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, '$1<h1 style="font-size: 1.4em; color: var(--accent); margin: 16px 0; font-weight: 700; line-height: 1.3 !important;">$2</h1>');
-        // ** 볼드체 변환
+        // #, ##, ### 등 모든 마크다운 제목 변환 (1개부터 6개까지 자동 대응)
+        html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*(#{1,6})\s+(.*?)(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, (match, prefix, hashes, content) => {
+        const level = hashes.length; // # 개수 (1~6)
+        // # 개수가 많아질수록 글자 크기가 자연스럽게 작아지도록 설정
+        const sizes = { 1: '1.5em', 2: '1.35em', 3: '1.2em', 4: '1.1em', 5: '1em', 6: '0.9em' };
+        // * 볼드체 변환
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
         html = html.replace(/__(.*?)__/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
-        // * 이탤릭체 변환
-        html = html.replace(/\*(.*?)\*/g, '<em style="font-style:italic; opacity:0.85;">$1</em>');
+        // * 또는 _ 이탤릭체 변환 (기울임 + 요청하신 #82847F 색상 반영)
+        html = html.replace(/\*(.*?)\*/g, '<em style="font-style:italic; color:#82847F;">$1</em>');
+        html = html.replace(/_(.*?)_/g, '<em style="font-style:italic; color:#82847F;">$1</em>');
         // > 인용구 변환
         html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*&gt;\s*(.*?)(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, '$1<blockquote style="border-left:3px solid #8b6ff0; padding-left:10px; margin:8px 0; color:rgba(128,128,128,0.7); font-style:normal;">$2</blockquote>');
         
