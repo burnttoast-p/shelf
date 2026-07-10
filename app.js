@@ -49,7 +49,7 @@ const DEFAULT_SET = {
   fontFamily: 'ridi',    // 기본 폰트를 리디바탕으로 지정
   lineHeight: '1.8',     
   letterSpacing: '0px',  
-  paraSpacing: '12px',   // 문단 줄띄움 폭 설정 추가
+  paraSpacing: '12px',   // 문단 줄띄움 폭 설정
   markdown: true         
 };
 let settings = { ...DEFAULT_SET };
@@ -713,7 +713,7 @@ function openAnnoSheet(id) {
   const pens = STYLE_KEYS.map(k => k === 'under'
     ? `<button class="pen-under ${a.style === 'under' ? 'sel-on' : ''}" data-k="under">밑줄</button>`
     : `<button class="pen ${a.style === k ? 'sel-on' : ''}" data-k="${k}" style="background:${HL_COLORS[k]}"></button>`).join('');
-  const el = openSheet suicide(`
+  const el = openSheet(`
     <div class="anno-quote">${esc(a.text || '(본문)')}</div>
     <div class="pen-row">${pens}</div>
     ${a.note ? `<div class="anno-note" style="margin:0 0 14px">${esc(a.note)}</div>` : ''}
@@ -1153,3 +1153,4 @@ function bindStatic() {
   // 캐시 지옥 해방용 개발 세팅 (테스트 완료 후 완전히 완성되면 앞에 //를 지워주세요!)
   // if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
+
