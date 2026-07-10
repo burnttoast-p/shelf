@@ -460,6 +460,52 @@ function setupRendition() {
         src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
         font-weight: normal;
         font-display: swap;
+function setupRendition() {
+  const flow = settings.flow === 'scroll' ? 'scrolled-doc' : 'paginated';
+  rendition = book.renderTo(viewerEl, { width: '100%', height: '100%', flow, spread: 'none', allowScriptedContent: false });
+  
+  const T = rendition.themes;
+  T.register('light', { body: { background: '#faf6ee', color: '#2b2433' } });
+  T.register('dark', { body: { background: '#16131c', color: '#d8d2e4' }, a: { color: '#a58bff' } });
+  T.register('sepia', { body: { background: '#f3e8d2', color: '#463a26' } });
+  T.select(settings.theme);
+
+  if (settings.hlVisible) annos.filter(a => a.type === 'hl').forEach(drawAnno);
+  rendition.on('relocated', onRelocated);
+  rendition.on('selected', onSelected);
+  rendition.on('touchstart', onTouchStart);
+  rendition.on('touchend', onTouchEnd);
+
+  // 책 내용이 아이프레임 내부에 로드될 때 스타일 및 마크다운 강제 가공
+  rendition.hooks.content.register(contents => {
+    const doc = contents.document;
+    const head = doc.head;
+
+    // 1. KoPub 바탕 외부 스타일시트 링크 강제 삽입
+    if (!doc.getElementById('dns-kopub-link')) {
+      const lnk = doc.createElement('link');
+      lnk.id = 'dns-kopub-link';
+      lnk.rel = 'stylesheet';
+      lnk.href = 'https://cdn.jsdelivr.net/npm/font-kopub@1.0/kopubbatang.min.css';
+      head.appendChild(lnk);
+    }
+
+    // 2. 고유 스타일 요소 생성 및 사용자 커스텀 설정 실시간 강제 주입
+    let customStyle = doc.getElementById('dns-custom-inject');
+    if (!customStyle) {
+      customStyle = doc.createElement('style');
+      customStyle.id = 'dns-custom-inject';
+      head.appendChild(customStyle);
+    }
+
+    const fontTarget = settings.fontFamily === 'ridi' ? "'Ridibatang'" : "'KoPub Batang'";
+    
+    customStyle.innerHTML = `
+      @font-face {
+        font-family: 'Ridibatang';
+        src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff');
+        font-weight: normal;
+        font-display: swap;
       }
       body, p, span, div, li, a {
         font-family: ${fontTarget}, serif !important;
@@ -484,6 +530,9 @@ function setupRendition() {
           const sizes = { 1: '1.5em', 2: '1.35em', 3: '1.2em', 4: '1.1em', 5: '1em', 6: '0.9em' };
           return `${prefix}<h${level} style="font-size: ${sizes[level] || '1.2em'}; color: var(--accent); margin: 14px 0; font-weight: 700; line-height: 1.3 !important;">${content}</h${level}>`;
         });
+
+        // --- 또는 *** 구분선 변환 (테마에 맞춰 자연스럽게 녹아드는 회색 선)
+        html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*(-{3,}|\*{3,})\s*(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, '$1<hr style="border:none; height:1px; background:rgba(128,128,128,0.3); margin:20px 0 !important;">');
 
         // ** 볼드체 변환
         html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--accent); font-weight:700;">$1</strong>');
