@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stonewhale V08';
+const CACHE_NAME = 'stonewhale V09';
 const ASSETS = [
   './',
   './index.html',
