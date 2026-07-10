@@ -49,7 +49,7 @@ const DEFAULT_SET = {
   fontFamily: 'ridi',    // 기본 폰트를 리디바탕으로 지정
   lineHeight: '1.8',     
   letterSpacing: '0px',  
-  padding: '24px',       
+  paraSpacing: '12px',   // 문단 줄띄움 폭 설정 추가
   markdown: true         
 };
 let settings = { ...DEFAULT_SET };
@@ -297,7 +297,7 @@ function download(name, obj) {
 const packBook = (rec, list) => ({
   bookId: rec.id, title: rec.title, author: rec.author || '',
   annotations: list.filter(a => a.type === 'hl'),
-  bookmarks: list.filter(a => a.type === 'bm')
+  bookmarks: list.filter(a => a.type === 'bm' || a.type === 'bookmark')
 });
 
 async function exportBook(id) {
@@ -468,8 +468,12 @@ function setupRendition() {
         letter-spacing: ${settings.letterSpacing} !important;
       }
       body {
-        padding-left: ${settings.padding} !important;
-        padding-right: ${settings.padding} !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+      }
+      p, div, blockquote {
+        margin-top: 0 !important;
+        margin-bottom: ${settings.paraSpacing} !important;
       }
     `;
 
@@ -709,7 +713,7 @@ function openAnnoSheet(id) {
   const pens = STYLE_KEYS.map(k => k === 'under'
     ? `<button class="pen-under ${a.style === 'under' ? 'sel-on' : ''}" data-k="under">밑줄</button>`
     : `<button class="pen ${a.style === k ? 'sel-on' : ''}" data-k="${k}" style="background:${HL_COLORS[k]}"></button>`).join('');
-  const el = openSheet(`
+  const el = openSheet suicide(`
     <div class="anno-quote">${esc(a.text || '(본문)')}</div>
     <div class="pen-row">${pens}</div>
     ${a.note ? `<div class="anno-note" style="margin:0 0 14px">${esc(a.note)}</div>` : ''}
@@ -995,8 +999,8 @@ function openSettingsSheet(replace) {
     <div class="set-row"><span class="set-label">글꼴 변경</span>
       <div class="seg" id="seg-font"><button data-fn="ridi">리디바탕</button><button data-fn="kopub">KoPub바탕</button></div>
     </div>
-    <div class="set-row"><span class="set-label">문단 폭 여백</span>
-      <div class="seg" id="seg-pad"><button data-pd="16px">넓게</button><button data-pd="32px">보통</button><button data-pd="48px">좁게</button></div>
+    <div class="set-row"><span class="set-label">문단 사이 간격</span>
+      <div class="seg" id="seg-para"><button data-ps="6px">좁게</button><button data-ps="16px">보통</button><button data-ps="28px">넓게</button></div>
     </div>
     <div class="set-row"><span class="set-label">줄 간격 (행간)</span>
       <div class="seg" id="seg-lh"><button data-lh="1.5">좁게</button><button data-lh="1.9">보통</button><button data-lh="2.4">넓게</button></div>
@@ -1007,9 +1011,6 @@ function openSettingsSheet(replace) {
     <div class="set-row"><span class="set-label">마크다운 서식</span>
       <div class="seg" id="seg-md"><button data-md="true">적용</button><button data-md="false">해제</button></div>
     </div>
-    <div class="set-row"><span class="set-label">화면 테마</span>
-      <div class="seg" id="seg-theme"><button data-t="light">밝게</button><button data-t="sepia">세피아</button><button data-t="dark">어둡게</button></div>
-    </div>
     <div class="set-row"><span class="set-label">페이지 넘김</span>
       <div class="seg" id="seg-flow"><button data-f="page">페이지</button><button data-f="scroll">스크롤</button></div>
     </div>`, { replace });
@@ -1017,11 +1018,10 @@ function openSettingsSheet(replace) {
   const sync = () => {
     el.querySelector('#fs-val').textContent = settings.fontSize + '%';
     el.querySelectorAll('#seg-font button').forEach(b => b.classList.toggle('on', b.dataset.fn === settings.fontFamily));
-    el.querySelectorAll('#seg-pad button').forEach(b => b.classList.toggle('on', b.dataset.pd === settings.padding));
+    el.querySelectorAll('#seg-para button').forEach(b => b.classList.toggle('on', b.dataset.ps === settings.paraSpacing));
     el.querySelectorAll('#seg-lh button').forEach(b => b.classList.toggle('on', b.dataset.lh === settings.lineHeight));
     el.querySelectorAll('#seg-ls button').forEach(b => b.classList.toggle('on', b.dataset.ls === settings.letterSpacing));
     el.querySelectorAll('#seg-md button').forEach(b => b.classList.toggle('on', b.dataset.md === String(settings.markdown)));
-    el.querySelectorAll('#seg-theme button').forEach(b => b.classList.toggle('on', b.dataset.t === settings.theme));
     el.querySelectorAll('#seg-flow button').forEach(b => b.classList.toggle('on', b.dataset.f === settings.flow));
   };
   sync();
@@ -1029,11 +1029,10 @@ function openSettingsSheet(replace) {
   el.onclick = e => {
     const fs = e.target.closest('[data-fs]');
     const fn = e.target.closest('[data-fn]');
-    const pd = e.target.closest('[data-pd]');
+    const ps = e.target.closest('[data-ps]');
     const lh = e.target.closest('[data-lh]');
     const ls = e.target.closest('[data-ls]');
     const md = e.target.closest('[data-md]');
-    const th = e.target.closest('[data-t]');
     const fl = e.target.closest('[data-f]');
 
     if (fs) {
@@ -1042,8 +1041,8 @@ function openSettingsSheet(replace) {
     } else if (fn) {
       settings.fontFamily = fn.dataset.fn;
       saveSettings(); recreateRendition();
-    } else if (pd) {
-      settings.padding = pd.dataset.pd;
+    } else if (ps) {
+      settings.paraSpacing = ps.dataset.ps;
       saveSettings(); recreateRendition();
     } else if (lh) {
       settings.lineHeight = lh.dataset.lh;
@@ -1054,9 +1053,6 @@ function openSettingsSheet(replace) {
     } else if (md) {
       settings.markdown = md.dataset.md === 'true';
       saveSettings(); recreateRendition();
-    } else if (th && th.dataset.t !== settings.theme) {
-      settings.theme = th.dataset.t;
-      saveSettings(); applyReaderTheme();
     } else if (fl && fl.dataset.f !== settings.flow) {
       settings.flow = fl.dataset.f;
       saveSettings(); recreateRendition();
