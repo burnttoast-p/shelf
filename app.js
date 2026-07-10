@@ -46,10 +46,10 @@ const DEFAULT_SET = {
   theme: 'light', 
   flow: 'page', 
   hlVisible: true,
-  fontFamily: 'ridi',    // 기본 폰트를 리디바탕으로 지정
+  fontFamily: 'ridi',    
   lineHeight: '1.8',     
   letterSpacing: '0px',  
-  paraSpacing: '12px',   // 문단 줄띄움 폭 설정
+  paraSpacing: '16px',   // 초기값을 바텀시트 버튼과 동기화
   markdown: true         
 };
 let settings = { ...DEFAULT_SET };
@@ -60,7 +60,7 @@ const saveSettings = () => { try { localStorage.setItem('lsj-settings', JSON.str
 let db = null;
 let book = null, rendition = null;
 let current = { id: null, rec: null };
-let annos = [];                 // 현재 책의 형광펜/북마크
+let annos = [];                 
 let bookState = { bookId: null };
 let tocFlat = [];
 let curLoc = null, curChapter = '';
@@ -471,9 +471,16 @@ function setupRendition() {
         padding-left: 20px !important;
         padding-right: 20px !important;
       }
+      /* 일반 조각난 줄글은 행간처럼 촘촘하게 붙도록 강제 제어 */
       p, div, blockquote {
         margin-top: 0 !important;
+        margin-bottom: 4px !important;
+      }
+      /* 비어있거나 br만 들어있는 진짜 공백 구간에만 문단 사이 간격을 적용 */
+      p:empty, div:empty, p:has(> br:only-child), div:has(> br:only-child) {
         margin-bottom: ${settings.paraSpacing} !important;
+        min-height: ${settings.paraSpacing} !important;
+        display: block !important;
       }
     `;
 
@@ -484,7 +491,7 @@ function setupRendition() {
         
         // #, ##, ### 등 모든 마크다운 제목 변환 (1개부터 6개까지 자동 대응)
         html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*(#{1,6})\s+(.*?)(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, (match, prefix, hashes, content) => {
-          const level = hashes.length; // # 개수 (1~6)
+          const level = hashes.length; 
           const sizes = { 1: '1.5em', 2: '1.35em', 3: '1.2em', 4: '1.1em', 5: '1em', 6: '0.9em' };
           return `${prefix}<h${level} style="font-size: ${sizes[level] || '1.2em'}; color: var(--accent); margin: 14px 0; font-weight: 700; line-height: 1.3 !important;">${content}</h${level}>`;
         });
