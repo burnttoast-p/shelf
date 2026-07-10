@@ -49,7 +49,7 @@ const DEFAULT_SET = {
   fontFamily: 'ridi',    
   lineHeight: '1.8',     
   letterSpacing: '0px',  
-  paraSpacing: '16px',   // 초기값을 바텀시트 버튼과 동기화
+  paraSpacing: '16px',   
   markdown: true         
 };
 let settings = { ...DEFAULT_SET };
@@ -471,20 +471,9 @@ function setupRendition() {
         padding-left: 20px !important;
         padding-right: 20px !important;
       }
-      /* 일반 조각난 줄글은 행간처럼 촘촘하게 붙도록 강제 제어 */
-      p, div, blockquote {
-        margin-top: 0 !important;
-        margin-bottom: 4px !important;
-      }
-      /* 비어있거나 br만 들어있는 진짜 공백 구간에만 문단 사이 간격을 적용 */
-      p:empty, div:empty, p:has(> br:only-child), div:has(> br:only-child) {
-        margin-bottom: ${settings.paraSpacing} !important;
-        min-height: ${settings.paraSpacing} !important;
-        display: block !important;
-      }
     `;
 
-    // 3. 마크다운 변환 파싱 (중복 변환으로 인한 형광펜 깨짐 방지 장치 포함)
+    // 3. 마크다운 변환 파싱
     if (settings.markdown && !doc.body.classList.contains('md-done')) {
       try {
         let html = doc.body.innerHTML;
@@ -496,7 +485,7 @@ function setupRendition() {
           return `${prefix}<h${level} style="font-size: ${sizes[level] || '1.2em'}; color: var(--accent); margin: 14px 0; font-weight: 700; line-height: 1.3 !important;">${content}</h${level}>`;
         });
 
-        // --- 또는 *** 구분선 변환 (테마에 맞춰 자연스럽게 녹아드는 회색 선)
+        // --- 또는 *** 구분선 변환
         html = html.replace(/(^|>|&lt;br&gt;|&lt;p&gt;|<br>|<p>)\s*(-{3,}|\*{3,})\s*(?=&lt;br&gt;|&lt;p&gt;|<br>|<p>|&lt;\/p&gt;|<\/p>|<|$)/g, '$1<hr style="border:none; height:1px; background:rgba(128,128,128,0.3); margin:20px 0 !important;">');
 
         // ** 볼드체 변환
@@ -514,6 +503,27 @@ function setupRendition() {
         doc.body.classList.add('md-done');
       } catch (e) { console.error(e); }
     }
+
+    // ★ [핵심 교정 구역] 마크다운 가공이 완전히 끝난 최종 Dom 상태에서 유령 공백 문자까지 판독해 처리!
+    try {
+      doc.querySelectorAll('p, div, blockquote').forEach(el => {
+        // 텍스트 내부의 일반 공백, 탭, 개행 및 특수 공백(\xa0, &nbsp;)을 전부 제거해 봅니다.
+        const cleanText = el.textContent.replace(/[\s\xa0]/g, '');
+        
+        if (cleanText === '') {
+          // 유령 공백만 채워져 있던 진짜 빈 줄 단락 -> 설정창 수치만큼 완벽하게 기둥(Height)을 세웁니다.
+          el.style.setProperty('margin-top', '0px', 'important');
+          el.style.setProperty('margin-bottom', '0px', 'important');
+          el.style.setProperty('height', settings.paraSpacing, 'important');
+          el.style.setProperty('min-height', settings.paraSpacing, 'important');
+          el.style.setProperty('display', 'block', 'important');
+        } else {
+          // 대사나 글씨가 들어있는 일반 줄 -> 행간처럼 자연스럽게 촘촘히 4px만 유지합니다.
+          el.style.setProperty('margin-top', '0px', 'important');
+          el.style.setProperty('margin-bottom', '4px', 'important');
+        }
+      });
+    } catch (e) { console.error("간격 제어 에러", e); }
 
     try {
       contents.document.addEventListener('selectionchange', () => {
@@ -1160,4 +1170,3 @@ function bindStatic() {
   // 캐시 지옥 해방용 개발 세팅 (테스트 완료 후 완전히 완성되면 앞에 //를 지워주세요!)
   // if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 })();
-
